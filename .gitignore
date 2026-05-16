@@ -1,0 +1,8 @@
+build/
+.gradle/
+*.tar.gz
+*.zip
+.idea/
+*.iml
+.DS_Store
+local.properties

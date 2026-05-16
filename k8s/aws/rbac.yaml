@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: pokemon-api
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: pokemon-api-sa
+  namespace: pokemon-api
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::<ACCOUNT_ID>:role/pokemon-api-role

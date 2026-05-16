@@ -1,0 +1,66 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: pokemon-api
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pokemon-api
+  namespace: pokemon-api
+  labels:
+    app: pokemon-api
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: pokemon-api
+  template:
+    metadata:
+      labels:
+        app: pokemon-api
+    spec:
+      containers:
+        - name: pokemon-api
+          image: pokemon-api:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+          env:
+            - name: PORT
+              value: "8080"
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          livenessProbe:
+            httpGet:
+              path: /api/pokemon/health
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 15
+          readinessProbe:
+            httpGet:
+              path: /api/pokemon/health
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pokemon-api
+  namespace: pokemon-api
+  labels:
+    app: pokemon-api
+spec:
+  selector:
+    app: pokemon-api
+  ports:
+    - port: 80
+      targetPort: 8080
+      protocol: TCP
+  type: ClusterIP

@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pokemon-api-aws
+  namespace: pokemon-api
+  labels:
+    app: pokemon-api
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: pokemon-api
+  template:
+    metadata:
+      labels:
+        app: pokemon-api
+    spec:
+      serviceAccountName: pokemon-api-sa
+      containers:
+        - name: pokemon-api
+          image: <ACCOUNT_ID>.dkr.ecr.<REGION>.amazonaws.com/pokemon-api:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+          env:
+            - name: PORT
+              value: "8080"
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          livenessProbe:
+            httpGet:
+              path: /api/pokemon/health
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 15
+          readinessProbe:
+            httpGet:
+              path: /api/pokemon/health
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pokemon-api
+  namespace: pokemon-api
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-type: "external"
+    service.beta.kubernetes.io/aws-load-balancer-scheme: "internet-facing"
+spec:
+  selector:
+    app: pokemon-api
+  ports:
+    - port: 80
+      targetPort: 8080
+      protocol: TCP
+  type: LoadBalancer
